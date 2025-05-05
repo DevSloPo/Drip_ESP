@@ -1,4 +1,4 @@
--- DripESP Library | BY du78
+-- DripESP Library | BY du7
 local DripESP = {}
 local connection
 
@@ -36,25 +36,39 @@ end
 local function applyESP(model)
     if isPlayerCharacter(model) then return end
 
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    local rootPart = char:FindFirstChild("HumanoidRootPart")
+    local modelRoot = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("Torso") or model:FindFirstChild("Head")
+    if not modelRoot then return end
+
     if not model:FindFirstChild("BillboardGui") then
         local billboard = Instance.new("BillboardGui")
         billboard.Name = "BillboardGui"
         billboard.Parent = model
-        billboard.Adornee = model
+        billboard.Adornee = modelRoot
         billboard.Size = UDim2.new(0, 100, 0, 30)
         billboard.StudsOffset = Vector3.new(0, 3, 0)
         billboard.AlwaysOnTop = true
 
         local nameLabel = Instance.new("TextLabel")
+        nameLabel.Name = "ESP_Text"
         nameLabel.Parent = billboard
         nameLabel.Size = UDim2.new(1, 0, 1, 0)
         nameLabel.BackgroundTransparency = 1
-        nameLabel.Text = settings.CustomText or model.Name
         nameLabel.TextColor3 = settings.TextColor
         nameLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
         nameLabel.TextStrokeTransparency = 0
         nameLabel.TextSize = settings.TextSize
         nameLabel.Font = Enum.Font.GothamBold
+
+        task.spawn(function()
+            while billboard and billboard.Parent and modelRoot and rootPart do
+                local dist = (modelRoot.Position - rootPart.Position).Magnitude
+                nameLabel.Text = string.format("%s [%.1f]", settings.CustomText or model.Name, dist)
+                task.wait(0.3)
+            end
+        end)
     end
 
     if not model:FindFirstChild(settings.HighlightName) then
