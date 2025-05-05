@@ -1,5 +1,5 @@
---ESPlibrary 丨 No obf
---BY du78
+-- DripESP Library | No obf
+-- BY du78
 local DripESP = {}
 local connection
 
@@ -9,6 +9,7 @@ local settings = {
     TextSize = 15,
     ModelName = "target_model",
     HighlightName = "Drip_Highlight",
+    CustomText = nil,
     CheckForHumanoid = true
 }
 
@@ -38,6 +39,7 @@ local function applyESP(model)
 
     if not model:FindFirstChild("BillboardGui") then
         local billboard = Instance.new("BillboardGui")
+        billboard.Name = "BillboardGui"
         billboard.Parent = model
         billboard.Adornee = model
         billboard.Size = UDim2.new(0, 100, 0, 30)
@@ -48,7 +50,7 @@ local function applyESP(model)
         nameLabel.Parent = billboard
         nameLabel.Size = UDim2.new(1, 0, 1, 0)
         nameLabel.BackgroundTransparency = 1
-        nameLabel.Text = model.Name
+        nameLabel.Text = settings.CustomText or model.Name
         nameLabel.TextColor3 = settings.TextColor
         nameLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
         nameLabel.TextStrokeTransparency = 0
@@ -109,3 +111,6 @@ function DripESP.Disable()
 end
 
 return DripESP
+
+print('作者:du78')
+print('DripEsp_Libray快捷)
