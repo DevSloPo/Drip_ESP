@@ -1,11 +1,11 @@
 # DripESP 模块化 ESP 库
 
 - 如果要使用，请标记ESP来源/ESP作者/ESP库
-
-一个轻量、高度模块化的 Roblox ESP 工具，支持模型标记和高亮显示。
+- 作者:du78_小玄
+快捷、模块化的 Roblox 模型ESP ，支持模型显示文本和高亮显示
 
 ## 模块列表
-
+- 这里不用管了，我合并在一起了
 - DripEsp_library.lua：主控逻辑
 - Settings.lua：配置项
 - ApplyESP.lua：应用 ESP 的具体代码
@@ -14,11 +14,16 @@
 ## 使用方式
 
 ```lua
-local DripESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/DevSloPo/Drip_ESP/main/DripEsp_library.lua"))()
-
-DripESP.SetOptions({
-    ModelName = "enemy",
-    CheckForHumanoid = false
-})
-
-DripESP.Enable()
+        if state then
+            DripESP.SetOptions({
+                ModelName = "模型名字", 
+                CustomText = "显示文本", 
+                TextColor = Color3.fromRGB(255, 255, 0),
+                OutlineColor = Color3.fromRGB(255, 0, 0), 
+                TextSize = 18, 
+                CheckForHumanoid = false 
+            })
+            DripESP.Enable()
+        else
+            DripESP.Disable()
+        end
