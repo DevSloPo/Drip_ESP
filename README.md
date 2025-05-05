@@ -14,16 +14,21 @@
 ## 使用方式
 
 ```lua
+
+
+    local DripESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/DevSloPo/Drip_ESP/refs/heads/main/DripEsp_library.lua"))()
+
+        local id = "要删除的ID"
         if state then
-            DripESP.SetOptions({
-                ModelName = "模型名字", 
-                CustomText = "显示文本", 
-                TextColor = Color3.fromRGB(255, 255, 0),
-                OutlineColor = Color3.fromRGB(255, 0, 0), 
-                TextSize = 18, 
-                CheckForHumanoid = false 
-            })
-            DripESP.Enable()
-        else
-            DripESP.Disable()
-        end
+        DripESP.SetOptions(id, {
+            ModelName = "模型",
+            CustomText = "显示文本",
+            TextColor = Color3.fromRGB(0, 255, 255),
+            OutlineColor = Color3.fromRGB(0, 255, 255),
+            TextSize = 16,
+            CheckForHumanoid = false
+        })
+        DripESP.Enable(id)
+    else
+        DripESP.Disable(id)
+    end
