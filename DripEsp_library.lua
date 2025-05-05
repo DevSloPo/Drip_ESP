@@ -1,6 +1,6 @@
 --ESPlibrary 丨 No obf
 --BY du78
-local DripESP = {}
+local DoorESP = {}
 local connection
 
 local settings = {
@@ -11,7 +11,7 @@ local settings = {
     HighlightName = "Door_Highlight",    
 }
 
-function DripESP.SetOptions(opts)
+function DoorESP.SetOptions(opts)
     for k, v in pairs(opts) do
         if settings[k] ~= nil then
             settings[k] = v
@@ -50,7 +50,7 @@ local function applyESP(model)
     end
 end
 
-function DripESP.Enable()
+function DoorESP.Enable()
     for _, v in ipairs(workspace:GetDescendants()) do
         if v:IsA("Model") and (v.Name:lower() == settings.ModelName or v:FindFirstChildOfClass("Door")) then
             applyESP(v)
@@ -65,7 +65,7 @@ function DripESP.Enable()
     end)
 end
 
-function DripESP.Disable()
+function DoorESP.Disable()
     if connection then
         connection:Disconnect()
         connection = nil
@@ -84,4 +84,4 @@ function DripESP.Disable()
     end
 end
 
-return DripESP
+return DoorESP
