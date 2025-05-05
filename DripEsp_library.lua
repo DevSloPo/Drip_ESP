@@ -1,45 +1,32 @@
--- DripESP Library | BY du7
-local DripESP = {}
+-- CustomESP Library | BY du78
+local CustomESP = {}
 local connection
 
 local settings = {
-    TextColor = Color3.new(0, 1, 1),
-    OutlineColor = Color3.new(0, 1, 1),
+    ModelName = "在Toggle自定义透视模型",
+    Text = "在Toggle中自定义显示文本",
+    TextColor = Color3.fromRGB(0, 255, 255),
+    OutlineColor = Color3.fromRGB(255, 0, 0),
     TextSize = 15,
-    ModelName = "target_model",
-    HighlightName = "Drip_Highlight",
-    CustomText = nil,
-    CheckForHumanoid = true
+    HighlightName = "CustomESP_Highlight"
 }
 
-function DripESP.SetOptions(opts)
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local rootPart = char:WaitForChild("HumanoidRootPart")
+
+function CustomESP.SetOptions(opts)
     for k, v in pairs(opts) do
         if settings[k] ~= nil then
-            if k == "ModelName" then
-                settings[k] = v:lower()
-            else
-                settings[k] = v
-            end
+            settings[k] = v
         end
     end
-end
-
-local function isPlayerCharacter(model)
-    for _, player in ipairs(game.Players:GetPlayers()) do
-        if player.Character == model then
-            return true
-        end
-    end
-    return false
 end
 
 local function applyESP(model)
-    if isPlayerCharacter(model) then return end
+    if not model:IsA("Model") or model.Name ~= settings.ModelName then return end
 
-    local player = game.Players.LocalPlayer
-    local char = player.Character or player.CharacterAdded:Wait()
-    local rootPart = char:FindFirstChild("HumanoidRootPart")
-    local modelRoot = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("Torso") or model:FindFirstChild("Head")
+    local modelRoot = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("Torso") or model:FindFirstChild("Head") or model:FindFirstChildWhichIsA("BasePart")
     if not modelRoot then return end
 
     if not model:FindFirstChild("BillboardGui") then
@@ -51,21 +38,21 @@ local function applyESP(model)
         billboard.StudsOffset = Vector3.new(0, 3, 0)
         billboard.AlwaysOnTop = true
 
-        local nameLabel = Instance.new("TextLabel")
-        nameLabel.Name = "ESP_Text"
-        nameLabel.Parent = billboard
-        nameLabel.Size = UDim2.new(1, 0, 1, 0)
-        nameLabel.BackgroundTransparency = 1
-        nameLabel.TextColor3 = settings.TextColor
-        nameLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-        nameLabel.TextStrokeTransparency = 0
-        nameLabel.TextSize = settings.TextSize
-        nameLabel.Font = Enum.Font.GothamBold
+        local label = Instance.new("TextLabel")
+        label.Name = "ESP_Text"
+        label.Parent = billboard
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.TextColor3 = settings.TextColor
+        label.TextStrokeColor3 = Color3.new(0, 0, 0)
+        label.TextStrokeTransparency = 0
+        label.TextSize = settings.TextSize
+        label.Font = Enum.Font.GothamBold
 
         task.spawn(function()
-            while billboard and billboard.Parent and modelRoot and rootPart do
+            while billboard and billboard.Parent and rootPart and modelRoot do
                 local dist = (modelRoot.Position - rootPart.Position).Magnitude
-                nameLabel.Text = string.format("%s [%.1f]", settings.CustomText or model.Name, dist)
+                label.Text = string.format("%s [%.1f]", settings.Text, dist)
                 task.wait(0.3)
             end
         end)
@@ -81,46 +68,36 @@ local function applyESP(model)
     end
 end
 
-function DripESP.Enable()
-    for _, v in ipairs(workspace:GetDescendants()) do
-        local nameMatch = v.Name:lower() == settings.ModelName
-        local classMatch = settings.CheckForHumanoid and v:FindFirstChildOfClass("Humanoid")
-
-        if v:IsA("Model") and (nameMatch or classMatch) then
-            applyESP(v)
+function CustomESP.Enable()
+    for _, model in ipairs(workspace:GetDescendants()) do
+        if model:IsA("Model") and model.Name == settings.ModelName then
+            applyESP(model)
         end
     end
 
     connection = workspace.DescendantAdded:Connect(function(v)
-        if v:IsA("Model") then
-            local nameMatch = v.Name:lower() == settings.ModelName
-            local classMatch = settings.CheckForHumanoid and v:FindFirstChildOfClass("Humanoid")
-
-            if nameMatch or classMatch then
-                task.wait(0.5)
-                applyESP(v)
-            end
+        if v:IsA("Model") and v.Name == settings.ModelName then
+            task.wait(0.5)
+            applyESP(v)
         end
     end)
 end
 
-function DripESP.Disable()
+function CustomESP.Disable()
     if connection then
         connection:Disconnect()
         connection = nil
     end
 
-    for _, v in ipairs(workspace:GetDescendants()) do
-        if v:IsA("Model") and not isPlayerCharacter(v) then
-            if v:FindFirstChild("BillboardGui") then
-                v.BillboardGui:Destroy()
-            end
-            local highlight = v:FindFirstChild(settings.HighlightName)
-            if highlight then
-                highlight:Destroy()
-            end
+    for _, model in ipairs(workspace:GetDescendants()) do
+        if model:IsA("Model") and model.Name == settings.ModelName then
+            local gui = model:FindFirstChild("BillboardGui")
+            if gui then gui:Destroy() end
+
+            local hl = model:FindFirstChild(settings.HighlightName)
+            if hl then hl:Destroy() end
         end
     end
 end
 
-return DripESP
+return CustomESP
