@@ -1,10 +1,12 @@
--- DripESP_Library | BY du78 (Modified for Bold Font)
+-- DripESP_Library | BY du78
 local DripESP = {}
 local connections = {}
 local all_settings = {}
 local player = game.Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local rootPart = char:WaitForChild("HumanoidRootPart")
+
+local raycastGui, raycastLabel, raycastRunning = nil, nil, false
 
 function DripESP.SetOptions(ESP_ID, opts)
     all_settings[ESP_ID] = {
@@ -13,7 +15,6 @@ function DripESP.SetOptions(ESP_ID, opts)
         TextColor = opts.TextColor or Color3.fromRGB(0, 255, 255),
         OutlineColor = opts.OutlineColor or Color3.fromRGB(255, 0, 0),
         TextSize = opts.TextSize or 15,
-        Font = opts.Font or Enum.Font.GothamBlack, 
         HighlightName = "ESP_Highlight_" .. ESP_ID,
         BillboardName = "ESP_Billboard_" .. ESP_ID,
         CheckForHumanoid = opts.CheckForHumanoid or false,
@@ -48,7 +49,7 @@ local function applyESP(model, ESP_ID, settings)
         label.TextStrokeColor3 = Color3.new(0, 0, 0)
         label.TextStrokeTransparency = 0
         label.TextSize = settings.TextSize
-        label.Font = settings.Font -- 应用字体配置
+        label.Font = Enum.Font.GothamBold
         label.TextWrapped = true
         label.TextYAlignment = Enum.TextYAlignment.Center
 
@@ -109,6 +110,55 @@ function DripESP.Disable(ESP_ID)
     end
 
     all_settings[ESP_ID] = nil
+end
+
+function DripESP.EnableRaycastInfo()
+    if raycastRunning then return end
+    raycastRunning = true
+
+    local camera = workspace.CurrentCamera
+    raycastGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+    raycastGui.Name = "RaycastInfo"
+
+    raycastLabel = Instance.new("TextLabel", raycastGui)
+    raycastLabel.Size = UDim2.new(1, 0, 0, 30)
+    raycastLabel.Position = UDim2.new(0, 0, 1, -30)
+    raycastLabel.BackgroundTransparency = 0.4
+    raycastLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    raycastLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+    raycastLabel.TextStrokeTransparency = 0
+    raycastLabel.Font = Enum.Font.GothamBold
+    raycastLabel.TextSize = 18
+    raycastLabel.Text = "[Raycast] 正在初始化..."
+    raycastLabel.ZIndex = 100
+
+    task.spawn(function()
+        while raycastRunning and camera do
+            local ray = camera:ViewportPointToRay(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
+            local params = RaycastParams.new()
+            params.FilterDescendantsInstances = {player.Character}
+            params.FilterType = Enum.RaycastFilterType.Blacklist
+
+            local result = workspace:Raycast(ray.Origin, ray.Direction * 500, params)
+            if result and result.Instance then
+                raycastLabel.Text = string.format("[Raycast] 命中：%s | 距离：%.1f",
+                    result.Instance.Name,
+                    (result.Position - ray.Origin).Magnitude)
+            else
+                raycastLabel.Text = "[Raycast] 无目标"
+            end
+            task.wait(0.3)
+        end
+    end)
+end
+
+function DripESP.DisableRaycastInfo()
+    raycastRunning = false
+    if raycastGui then
+        raycastGui:Destroy()
+        raycastGui = nil
+        raycastLabel = nil
+    end
 end
 
 return DripESP
