@@ -1,20 +1,25 @@
 --ESPlibrary 丨 No obf
 --BY du78
-local DoorESP = {}
+local DripESP = {}
 local connection
 
 local settings = {
     TextColor = Color3.new(0, 1, 1),      
     OutlineColor = Color3.new(0, 1, 1),   
     TextSize = 15,                        
-    ModelName = "door",                 
-    HighlightName = "Door_Highlight",    
+    ModelName = "target_model", 
+    HighlightName = "Drip_Highlight",    
+    CheckForHumanoid = true  
 }
 
-function DoorESP.SetOptions(opts)
+function DripESP.SetOptions(opts)
     for k, v in pairs(opts) do
         if settings[k] ~= nil then
-            settings[k] = v
+            if k == "ModelName" then
+                settings[k] = v:lower() 
+            else
+                settings[k] = v
+            end
         end
     end
 end
@@ -50,29 +55,37 @@ local function applyESP(model)
     end
 end
 
-function DoorESP.Enable()
+function DripESP.Enable()
     for _, v in ipairs(workspace:GetDescendants()) do
-        if v:IsA("Model") and (v.Name:lower() == settings.ModelName or v:FindFirstChildOfClass("Door")) then
+        local nameMatch = v.Name:lower() == settings.ModelName
+        local classMatch = settings.CheckForHumanoid and v:FindFirstChildOfClass("Humanoid")
+        
+        if v:IsA("Model") and (nameMatch or classMatch) then
             applyESP(v)
         end
     end
 
     connection = workspace.DescendantAdded:Connect(function(v)
-        if v:IsA("Model") and (v.Name:lower() == settings.ModelName or v:FindFirstChildOfClass("Door")) then
-            task.wait(0.5)
-            applyESP(v)
+        if v:IsA("Model") then
+            local nameMatch = v.Name:lower() == settings.ModelName
+            local classMatch = settings.CheckForHumanoid and v:FindFirstChildOfClass("Humanoid")
+            
+            if nameMatch or classMatch then
+                task.wait(0.5) 
+                applyESP(v)
+            end
         end
     end)
 end
 
-function DoorESP.Disable()
+function DripESP.Disable()
     if connection then
         connection:Disconnect()
         connection = nil
     end
 
     for _, v in ipairs(workspace:GetDescendants()) do
-        if v:IsA("Model") and (v.Name:lower() == settings.ModelName or v:FindFirstChildOfClass("Door")) then
+        if v:IsA("Model") then
             if v:FindFirstChild("BillboardGui") then
                 v.BillboardGui:Destroy()
             end
@@ -84,4 +97,4 @@ function DoorESP.Disable()
     end
 end
 
-return DoorESP
+return DripESP
