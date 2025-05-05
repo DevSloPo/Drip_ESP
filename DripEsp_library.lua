@@ -1,40 +1,40 @@
--- CustomESP Library | BY du78
-local CustomESP = {}
-local connection
-
-local settings = {
-    ModelName = "在Toggle自定义透视模型",
-    Text = "在Toggle中自定义显示文本",
-    TextColor = Color3.fromRGB(0, 255, 255),
-    OutlineColor = Color3.fromRGB(255, 0, 0),
-    TextSize = 15,
-    HighlightName = "CustomESP_Highlight"
-}
-
+-- DripESP_Library | BY du78
+local DripESP = {}
+local connections = {}
+local all_settings = {}
 local player = game.Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local rootPart = char:WaitForChild("HumanoidRootPart")
 
-function CustomESP.SetOptions(opts)
-    for k, v in pairs(opts) do
-        if settings[k] ~= nil then
-            settings[k] = v
-        end
-    end
+function DripESP.SetOptions(ESP_ID, opts)
+    all_settings[ESP_ID] = {
+        ModelName = opts.ModelName or "Model",
+        CustomText = opts.CustomText or "模型",
+        TextColor = opts.TextColor or Color3.fromRGB(0, 255, 255),
+        OutlineColor = opts.OutlineColor or Color3.fromRGB(255, 0, 0),
+        TextSize = opts.TextSize or 15,
+        HighlightName = "ESP_Highlight_" .. ESP_ID,
+        BillboardName = "ESP_Billboard_" .. ESP_ID,
+        CheckForHumanoid = opts.CheckForHumanoid or false,
+    }
 end
 
-local function applyESP(model)
+local function applyESP(model, ESP_ID, settings)
     if not model:IsA("Model") or model.Name ~= settings.ModelName then return end
+    if settings.CheckForHumanoid and not model:FindFirstChild("Humanoid") then return end
 
-    local modelRoot = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("Torso") or model:FindFirstChild("Head") or model:FindFirstChildWhichIsA("BasePart")
+    local modelRoot = model:FindFirstChild("HumanoidRootPart")
+        or model:FindFirstChild("Torso")
+        or model:FindFirstChild("Head")
+        or model:FindFirstChildWhichIsA("BasePart")
     if not modelRoot then return end
 
-    if not model:FindFirstChild("BillboardGui") then
+    if not model:FindFirstChild(settings.BillboardName) then
         local billboard = Instance.new("BillboardGui")
-        billboard.Name = "BillboardGui"
+        billboard.Name = settings.BillboardName
         billboard.Parent = model
         billboard.Adornee = modelRoot
-        billboard.Size = UDim2.new(0, 100, 0, 30)
+        billboard.Size = UDim2.new(0, 100, 0, 40)
         billboard.StudsOffset = Vector3.new(0, 3, 0)
         billboard.AlwaysOnTop = true
 
@@ -48,11 +48,13 @@ local function applyESP(model)
         label.TextStrokeTransparency = 0
         label.TextSize = settings.TextSize
         label.Font = Enum.Font.GothamBold
+        label.TextWrapped = true
+        label.TextYAlignment = Enum.TextYAlignment.Center
 
         task.spawn(function()
             while billboard and billboard.Parent and rootPart and modelRoot do
                 local dist = (modelRoot.Position - rootPart.Position).Magnitude
-                label.Text = string.format("%s [%.1f]", settings.Text, dist)
+                label.Text = string.format("%s\n[%.1f]", settings.CustomText, dist)
                 task.wait(0.3)
             end
         end)
@@ -68,36 +70,44 @@ local function applyESP(model)
     end
 end
 
-function CustomESP.Enable()
+function DripESP.Enable(ESP_ID)
+    local settings = all_settings[ESP_ID]
+    if not settings then return end
+
     for _, model in ipairs(workspace:GetDescendants()) do
         if model:IsA("Model") and model.Name == settings.ModelName then
-            applyESP(model)
+            applyESP(model, ESP_ID, settings)
         end
     end
 
-    connection = workspace.DescendantAdded:Connect(function(v)
+    connections[ESP_ID] = workspace.DescendantAdded:Connect(function(v)
         if v:IsA("Model") and v.Name == settings.ModelName then
             task.wait(0.5)
-            applyESP(v)
+            applyESP(v, ESP_ID, settings)
         end
     end)
 end
 
-function CustomESP.Disable()
-    if connection then
-        connection:Disconnect()
-        connection = nil
+function DripESP.Disable(ESP_ID)
+    local settings = all_settings[ESP_ID]
+    if not settings then return end
+
+    if connections[ESP_ID] then
+        connections[ESP_ID]:Disconnect()
+        connections[ESP_ID] = nil
     end
 
     for _, model in ipairs(workspace:GetDescendants()) do
         if model:IsA("Model") and model.Name == settings.ModelName then
-            local gui = model:FindFirstChild("BillboardGui")
+            local gui = model:FindFirstChild(settings.BillboardName)
             if gui then gui:Destroy() end
 
             local hl = model:FindFirstChild(settings.HighlightName)
             if hl then hl:Destroy() end
         end
     end
+
+    all_settings[ESP_ID] = nil
 end
 
-return CustomESP
+return DripESP
