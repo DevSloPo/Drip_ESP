@@ -1,5 +1,4 @@
--- DripESP Library | No obf
--- BY du78
+-- DripESP Library | BY du78
 local DripESP = {}
 local connection
 
@@ -111,6 +110,3 @@ function DripESP.Disable()
 end
 
 return DripESP
-
-print('作者:du78')
-print('DripEsp_Libray快捷)
