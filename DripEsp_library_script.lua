@@ -5,8 +5,10 @@ local all_settings = {}
 local player = game.Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local rootPart = char:WaitForChild("HumanoidRootPart")
+local camera = workspace.CurrentCamera
 
-local raycastGui, raycastLabel, raycastRunning = nil, nil, false
+local raycastConnection = nil
+local raycastLines = {}
 
 function DripESP.SetOptions(ESP_ID, opts)
     all_settings[ESP_ID] = {
@@ -113,52 +115,45 @@ function DripESP.Disable(ESP_ID)
 end
 
 function DripESP.EnableRaycastInfo()
-    if raycastRunning then return end
-    raycastRunning = true
+    if raycastConnection then return end
 
-    local camera = workspace.CurrentCamera
-    raycastGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-    raycastGui.Name = "RaycastInfo"
+    raycastConnection = game:GetService("RunService").RenderStepped:Connect(function()
+       
+        for _, line in pairs(raycastLines) do
+            if line then line:Remove() end
+        end
+        raycastLines = {}
 
-    raycastLabel = Instance.new("TextLabel", raycastGui)
-    raycastLabel.Size = UDim2.new(1, 0, 0, 30)
-    raycastLabel.Position = UDim2.new(0, 0, 1, -30)
-    raycastLabel.BackgroundTransparency = 0.4
-    raycastLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    raycastLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-    raycastLabel.TextStrokeTransparency = 0
-    raycastLabel.Font = Enum.Font.GothamBold
-    raycastLabel.TextSize = 18
-    raycastLabel.Text = "[Raycast] 正在初始化..."
-    raycastLabel.ZIndex = 100
-
-    task.spawn(function()
-        while raycastRunning and camera do
-            local ray = camera:ViewportPointToRay(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
-            local params = RaycastParams.new()
-            params.FilterDescendantsInstances = {player.Character}
-            params.FilterType = Enum.RaycastFilterType.Blacklist
-
-            local result = workspace:Raycast(ray.Origin, ray.Direction * 500, params)
-            if result and result.Instance then
-                raycastLabel.Text = string.format("[Raycast] 命中：%s | 距离：%.1f",
-                    result.Instance.Name,
-                    (result.Position - ray.Origin).Magnitude)
-            else
-                raycastLabel.Text = "[Raycast] 无目标"
+        for _, model in ipairs(workspace:GetDescendants()) do
+            if model:IsA("Model") and model:FindFirstChild("HumanoidRootPart") then
+                local hrp = model:FindFirstChild("HumanoidRootPart")
+                local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+                if onScreen then
+                    local line = Drawing.new("Line")
+                    line.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
+                    line.To = Vector2.new(screenPos.X, screenPos.Y)
+                    line.Color = Color3.fromRGB(0, 255, 255)
+                    line.Thickness = 1.5
+                    line.Transparency = 1
+                    line.Visible = true
+                    table.insert(raycastLines, line)
+                end
             end
-            task.wait(0.3)
         end
     end)
 end
 
+
 function DripESP.DisableRaycastInfo()
-    raycastRunning = false
-    if raycastGui then
-        raycastGui:Destroy()
-        raycastGui = nil
-        raycastLabel = nil
+    if raycastConnection then
+        raycastConnection:Disconnect()
+        raycastConnection = nil
     end
+
+    for _, line in pairs(raycastLines) do
+        if line then line:Remove() end
+    end
+    raycastLines = {}
 end
 
 return DripESP
