@@ -1,4 +1,3 @@
--- DripESP_Library | BY du78
 local DripESP = {}
 local connections = {}
 local all_settings = {}
@@ -6,7 +5,6 @@ local player = game.Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local rootPart = char:WaitForChild("HumanoidRootPart")
 local camera = workspace.CurrentCamera
-
 local raycastConnection = nil
 local raycastLines = {}
 
@@ -105,7 +103,6 @@ function DripESP.Disable(ESP_ID)
         if model:IsA("Model") and model.Name == settings.ModelName then
             local gui = model:FindFirstChild(settings.BillboardName)
             if gui then gui:Destroy() end
-
             local hl = model:FindFirstChild(settings.HighlightName)
             if hl then hl:Destroy() end
         end
@@ -116,9 +113,9 @@ end
 
 function DripESP.EnableRaycastInfo()
     if raycastConnection then return end
+    local localPlayer = game.Players.LocalPlayer
 
     raycastConnection = game:GetService("RunService").RenderStepped:Connect(function()
-       
         for _, line in pairs(raycastLines) do
             if line then line:Remove() end
         end
@@ -126,6 +123,10 @@ function DripESP.EnableRaycastInfo()
 
         for _, model in ipairs(workspace:GetDescendants()) do
             if model:IsA("Model") and model:FindFirstChild("HumanoidRootPart") then
+                if localPlayer.Character and model == localPlayer.Character then
+                    continue 
+                end
+
                 local hrp = model:FindFirstChild("HumanoidRootPart")
                 local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
                 if onScreen then
@@ -134,7 +135,7 @@ function DripESP.EnableRaycastInfo()
                     line.To = Vector2.new(screenPos.X, screenPos.Y)
                     line.Color = Color3.fromRGB(0, 255, 255)
                     line.Thickness = 1.5
-                    line.Transparency = 1
+                    line.Transparency = 0
                     line.Visible = true
                     table.insert(raycastLines, line)
                 end
@@ -142,7 +143,6 @@ function DripESP.EnableRaycastInfo()
         end
     end)
 end
-
 
 function DripESP.DisableRaycastInfo()
     if raycastConnection then
