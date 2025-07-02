@@ -1,15 +1,9 @@
-# DripESP 模块化 ESP 库
+# Roblox ESP 库
+- 作者:du78
+支持模型显示文本和高亮显示，我这个源码没了，导致我无法更新适配Part的😡
 
-- 如果要使用，请标记ESP来源/ESP作者/ESP库
-- 作者:du78_小玄
-快捷、模块化的 Roblox 模型ESP ，支持模型显示文本和高亮显示
-
-## 模块列表
+## 删除列表
 - 这里不用管了，我合并在一起了
-- DripEsp_library.lua：主控逻辑
-- Settings.lua：配置项
-- ApplyESP.lua：应用 ESP 的具体代码
-- Utils.lua：判断是否为玩家模型等辅助功能
 
 ## 使用方式
 
@@ -17,6 +11,8 @@
 
 
     local DripESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/DevSloPo/Drip_ESP/refs/heads/main/DripEsp_library.lua"))()
+
+下面配合Toggle使用
 
         local id = "要删除的ID"
         if state then
